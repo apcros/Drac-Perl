@@ -14,6 +14,12 @@ has 'url' => (is => 'ro', isa => 'Str', required => 1);
 has 'user' => (is => 'ro', isa => 'Str', required => 1);
 has 'password' => (is => 'ro', isa => 'Str', required => 1);
 
+# Because there's a max number of connections, we need to logout
+# After each request to avoid leaving a connection opened
+# But because the login is quite slow, we don't want to prevent
+# Use cases where multiple gets are going to be done sucessively 
+has 'single_use' => (is => 'ro', isa => 'Int', default => 1);
+
 has 'token' => (is => 'rw', isa => 'Str', default => 0);
 
 sub _build_ua {
@@ -31,7 +37,6 @@ sub _build_ua {
 
 sub login {
 	my $self = shift;
-	$self->ua->get($self->url."data/logout"); #Just to make sure.
 
 	my $login_form = $self->ua->get($self->url."/login.html");
 	$self->_check_res("Login Step 0 performed", $login_form->is_success);
@@ -43,7 +48,8 @@ sub login {
 
 	my $response_xml = XMLin($response_raw->decoded_content);
 
-	$self->_check_res("Login Step 1 performed", !$response_xml->{authResult});
+	my $logged = !$response_xml->{authResult};
+	$self->_check_res("Login Step 1 performed", $logged);
 
 	$log->debug("Login Step 1 response : ".$response_raw->decoded_content);
 
@@ -56,6 +62,12 @@ sub login {
 	return 1;
 }
 
+sub logout {
+	my $self = shift;
+	my $logout_page = $self->ua->post($self->url."/data/logout");
+	$log->debug("Logging out : ".$logout_page->decoded_content);
+}
+
 sub get {
 	my($self, $query) = @_;
 	
@@ -65,9 +77,13 @@ sub get {
 			get => $query,
 	});
 
+	print Dumper($response);
+
 	$self->_check_res("Getting : ".$query, $response->is_success);
 
-	my $parsed_response = XMLin($response->decoded_content);
+	my $parsed_response = XMLin($response->decoded_content) if $response->is_success;
+
+	$self->logout() if $self->single_use;
 
 	return $parsed_response;
 }
@@ -79,7 +95,8 @@ sub _check_res {
 		$log->info("[SUCCESS] ".$message);
 	} else {
 		$log->error("[FAILURE] ".$message);
-		die();
+		#Todo, logout before dying
+		#die();
 	}
 }
 
