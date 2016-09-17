@@ -14,6 +14,10 @@ has 'url' => (is => 'ro', isa => 'Str', required => 1);
 has 'user' => (is => 'ro', isa => 'Str', required => 1);
 has 'password' => (is => 'ro', isa => 'Str', required => 1);
 
+#Login can be extremely capricious, Max retries avoid being too 
+# annoyed by that
+has 'max_retries' => (is => 'ro', isa => 'Int', default => 5);
+
 # Because there's a max number of connections, we need to logout
 # After each request to avoid leaving a connection opened
 # But because the login is quite slow, we don't want to prevent
@@ -32,6 +36,8 @@ sub _build_ua {
 	$ua->default_header('Accept-Encoding' => 'gzip,deflate,sdch');
 	$ua->default_header('Accept-Language' => 'en-US,en;q=0.8,sv;q=0.6');
 
+	$ua->default_header('Accept' => '*/*');
+
 	return $ua;
 }
 
@@ -41,15 +47,25 @@ sub login {
 	my $login_form = $self->ua->get($self->url."/login.html");
 	$self->_check_res("Login Step 0 performed", $login_form->is_success);
 
-	my $response_raw = $self->ua->post($self->url."/data/login",{
+	my $response_raw;
+	my $response_xml;
+	my $need_to_retry = 1;
+	my $current_tries = 1;
+	while($need_to_retry) {
+
+		$response_raw = $self->ua->post($self->url."/data/login",{
 			user => $self->user,
 			password => $self->password
 		});
+		$response_xml = XMLin($response_raw->decoded_content);
+		my $logged = !$response_xml->{authResult};
 
-	my $response_xml = XMLin($response_raw->decoded_content);
+		$need_to_retry = 0 if $logged;
+		$need_to_retry = 0 if $current_tries > $self->max_retries;
 
-	my $logged = !$response_xml->{authResult};
-	$self->_check_res("Login Step 1 performed", $logged);
+		$self->_check_res("Login Step 1 performed (Attempt ".$current_tries."/".$self->max_retries.")", $logged);
+		$current_tries++;
+	}
 
 	$log->debug("Login Step 1 response : ".$response_raw->decoded_content);
 
@@ -73,11 +89,7 @@ sub get {
 	
 	$self->login() unless $self->token; #If the Login token already exist, no need to regenerate a new one
 
-	my $response = $self->ua->post($self->url."/data",{
-			get => $query,
-	});
-
-	print Dumper($response);
+	my $response = $self->ua->post($self->url."/data?get=".$query);
 
 	$self->_check_res("Getting : ".$query, $response->is_success);
 
@@ -95,8 +107,6 @@ sub _check_res {
 		$log->info("[SUCCESS] ".$message);
 	} else {
 		$log->error("[FAILURE] ".$message);
-		#Todo, logout before dying
-		#die();
 	}
 }
 
