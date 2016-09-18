@@ -13,8 +13,9 @@ A Simple perl client, using Moose and XML::Simple, iDRAC authentification can be
 
 There's few additional parameters that you can use : 
 
-max_retries => Defaulted to 5, the number of time the client will try to authenticate before giving up. (Usually 2-3 attempts are enough)
-single_use => Defaulted to 1. There's a limit in the number of opened connections you can have on iDrac, if this is set to 0, the api client will not logout between two requests. Careful with that as that might leads to cases where you create loads of sessions and you can't log anymore until they're expired. 
+- max_retries => Defaulted to 5, the number of time the client will try to authenticate before giving up. (Usually 2-3 attempts are enough)
+- single_use => Defaulted to 1
+There's a limit in the number of opened connections you can have on iDrac, if this is set to 0, the api client will not logout between two requests. Careful with that as that might leads to cases where you create loads of sessions and you can't log anymore until they're expired. 
 
 ## What's to come ? 
 
