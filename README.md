@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/apcros/Drac-Perl.svg?branch=master)](https://travis-ci.org/apcros/Drac-Perl)
 # Drac-Perl
 A client to interact with the iDRAC API on Dell Poweredge servers
 
