@@ -45,27 +45,34 @@ sub login {
 	my $self = shift;
 
 	my $login_form = $self->ua->get($self->url."/login.html");
-	$self->_check_res("Login Step 0 performed", $login_form->is_success);
+	$self->_check_res("Login Step 0 performed", $login_form->is_success) || die("iDrac login page is unreacheable : ".$self->url."/login.html");
 
 	my $response_raw;
 	my $response_xml;
 	my $need_to_retry = 1;
 	my $current_tries = 1;
+	my $logged;
+
 	while($need_to_retry) {
 
 		$response_raw = $self->ua->post($self->url."/data/login",{
 			user => $self->user,
 			password => $self->password
 		});
-		$response_xml = XMLin($response_raw->decoded_content);
-		my $logged = !$response_xml->{authResult};
+
+		if($response_raw->is_success) {
+			$response_xml = XMLin($response_raw->decoded_content);
+			$logged = !$response_xml->{authResult};
+		}
 
 		$need_to_retry = 0 if $logged;
-		$need_to_retry = 0 if $current_tries > $self->max_retries;
+		$need_to_retry = 0 if $current_tries > $self->max_retries-1;
 
 		$self->_check_res("Login Step 1 performed (Attempt ".$current_tries."/".$self->max_retries.")", $logged);
 		$current_tries++;
 	}
+
+	die("Logging failed after ".$self->max_retries." attempts") unless $logged;
 
 	$log->debug("Login Step 1 response : ".$response_raw->decoded_content);
 
@@ -81,6 +88,7 @@ sub login {
 sub logout {
 	my $self = shift;
 	my $logout_page = $self->ua->post($self->url."/data/logout");
+	$self->token(0);
 	$log->debug("Logging out : ".$logout_page->decoded_content);
 }
 
@@ -93,11 +101,13 @@ sub get {
 
 	$self->_check_res("Getting : ".$query, $response->is_success);
 
-	my $parsed_response = XMLin($response->decoded_content) if $response->is_success;
+	my $parsed_response;
 
+	$parsed_response = XMLin($response->decoded_content) if $response->is_success;
+	
 	$self->logout() if $self->single_use;
 
-	return $parsed_response;
+	return $parsed_response || 0;
 }
 
 sub _check_res {
@@ -105,8 +115,10 @@ sub _check_res {
 
 	if($condition) {
 		$log->info("[SUCCESS] ".$message);
+		return 1;
 	} else {
 		$log->error("[FAILURE] ".$message);
+		return 0;
 	}
 }
 
