@@ -1,12 +1,12 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "API Client for Dell's management interface (iDRAC)",
    "author" : [
-      "Apcros <apcros.mail@gmail.com>"
+      "Jules Decol (@Apcros)"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v3.0.4, CPAN::Meta::Converter version 2.150005",
    "license" : [
-      "perl_5"
+      "unknown"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
@@ -42,16 +42,35 @@
       },
       "runtime" : {
          "requires" : {
-            "perl" : "5.008001"
+            "LWP::Protocol::https" : "0",
+            "LWP::UserAgent" : "0",
+            "Log::Any" : "0",
+            "Moose" : "0",
+            "XML::Simple" : "0"
          }
       },
       "test" : {
          "requires" : {
-            "Test::More" : "0.98"
+            "LWP::UserAgent::Mockable" : "0",
+            "Test::More" : "0"
          }
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/apcros/Drac-Perl/issues"
+      },
+      "homepage" : "https://github.com/apcros/Drac-Perl",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/apcros/Drac-Perl.git",
+         "web" : "https://github.com/apcros/Drac-Perl"
+      }
+   },
    "version" : "0.01",
+   "x_contributors" : [
+      "Apcros <apcros.mail@gmail.com>"
+   ],
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }

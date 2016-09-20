@@ -1,5 +1,7 @@
 package DracPerl::Client;
 
+our $VERSION = "0.01";
+
 use Data::Dumper;
 use Log::Any qw($log);
 use Log::Any::Adapter;
