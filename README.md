@@ -24,4 +24,3 @@ There's a limit in the number of opened connections you can have on iDrac, if th
 - Integration with Log4Perl
 - Full list of supported Method 
 - Few method to abstract commons operations
-- Tests and Travis integrations 
