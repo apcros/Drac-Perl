@@ -1,42 +1,26 @@
-# NAME
+[![Build Status](https://travis-ci.org/apcros/Drac-Perl.svg?branch=master)](https://travis-ci.org/apcros/Drac-Perl)
+# Drac-Perl
+A client to interact with the iDRAC API on Dell Poweredge servers
 
-DracPerl::Client - API Client for Dell's management interface (iDRAC)
+## Why ?
+This been created because I find the web interface of iDrac slow and far from being easy to use. 
+I have the project of creating a full new iDrac front-end, but of course that project required an API Client. Because this is something that seem to be quite lacking in the PowerEdge community, I made a standalone repo/project for that :)
 
-# AUTHOR
+## How ? 
 
-Jules Decol (@Apcros)
+A Simple perl client, using Moose and XML::Simple, iDRAC authentification can be tricky but overall the only thing you need to do to use my module is : 
 
-# SYNOPSIS
+`my $drac = DracPerl::Client->new({user => 'username', password => 'password', url => 'https://idrac'});`
 
-        # Create the client
-        my $drac_client = DracPerl::Client->new({
-                        user            => "username",
-                        password        => "password",
-                        url             => "https://dracip",
-                        });
+There's few additional parameters that you can use : 
 
-        # Get what you're interested in
-        # Login is done implicitly
-        my $parsed_xml = $drac_client->get("fans");
+- max_retries => Defaulted to 5, the number of time the client will try to authenticate before giving up. (Usually 2-3 attempts are enough)
+- single_use => Defaulted to 1
+There's a limit in the number of opened connections you can have on iDrac, if this is set to 0, the api client will not logout between two requests. Careful with that as that might leads to cases where you create loads of sessions and you can't log anymore until they're expired. 
 
-# DESCRIPTION
+## What's to come ? 
 
-This has been created because I wanted to create my own version of the web Interface of iDRAC
-and an API Client was needed for that purpose.
-
-This allow you to get all the informations that you can get from the iDRAC web interface.
-(The interface actually use a backend XML API)
-
-# OBJECT ARGUMENTS
-
-## max\_retries
-
-Login can be extremely capricious, Max retries avoid being too
-annoyed by that. Defaulted to 5.
-
-## single\_use
-
-Because there's a max number of connections, we need to logout
-After each request to avoid leaving a connection opened
-But because the login is quite slow, we don't want to prevent
-Use cases where multiple gets are going to be done sucessively
+- Better error handling
+- Integration with Log4Perl
+- Full list of supported Method 
+- Few method to abstract commons operations
