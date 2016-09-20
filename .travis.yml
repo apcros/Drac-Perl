@@ -1,6 +1,6 @@
 language: perl
 sudo: false
-script: prove -lv t
+script: prove -lv -Ilib t
 perl:
   - "5.18"
   - "5.20"
