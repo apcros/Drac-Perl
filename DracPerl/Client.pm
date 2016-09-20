@@ -13,17 +13,8 @@ has 'ua' => (lazy => 1, is => 'ro', builder => '_build_ua');
 has 'url' => (is => 'ro', isa => 'Str', required => 1);
 has 'user' => (is => 'ro', isa => 'Str', required => 1);
 has 'password' => (is => 'ro', isa => 'Str', required => 1);
-
-#Login can be extremely capricious, Max retries avoid being too 
-# annoyed by that
 has 'max_retries' => (is => 'ro', isa => 'Int', default => 5);
-
-# Because there's a max number of connections, we need to logout
-# After each request to avoid leaving a connection opened
-# But because the login is quite slow, we don't want to prevent
-# Use cases where multiple gets are going to be done sucessively 
 has 'single_use' => (is => 'ro', isa => 'Int', default => 1);
-
 has 'token' => (is => 'rw', isa => 'Str', default => 0);
 
 sub _build_ua {
@@ -121,5 +112,51 @@ sub _check_res {
 		return 0;
 	}
 }
+
+=head1 NAME
+
+DracPerl::Client - API Client for Dell's management interface (iDRAC)
+
+=head1 AUTHOR
+
+Jules Decol (@Apcros)
+
+=head1 SYNOPSIS
+
+	# Create the client
+	my $drac_client = DracPerl::Client->new({
+			user 		=> "username",
+			password 	=> "password",
+			url 		=> "https://dracip",
+			});
+
+	# Get what you're interested in
+	# Login is done implicitly
+	my $parsed_xml = $drac_client->get("fans");
+
+=head1 DESCRIPTION
+
+This has been created because I wanted to create my own version of the web Interface of iDRAC
+and an API Client was needed for that purpose.
+
+This allow you to get all the informations that you can get from the iDRAC web interface.
+(The interface actually use a backend XML API)
+
+=head1 OBJECT ARGUMENTS
+
+
+=head2 max_retries
+
+Login can be extremely capricious, Max retries avoid being too
+annoyed by that. Defaulted to 5.
+
+=head2 single_use
+
+Because there's a max number of connections, we need to logout
+After each request to avoid leaving a connection opened
+But because the login is quite slow, we don't want to prevent
+Use cases where multiple gets are going to be done sucessively
+
+=cut
 
 1;
