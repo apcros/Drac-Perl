@@ -1,4 +1,5 @@
 name = "DracPerl-Client"
-# badges = ["travis"]
+badges = ["travis"]
 module_maker="ModuleBuildTiny"
+[release]
 
