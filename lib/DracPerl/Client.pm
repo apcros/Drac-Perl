@@ -7,7 +7,8 @@ use Log::Any::Adapter;
 
 use LWP::UserAgent;
 use Moose;
-use XML::Simple qw(XMLin);
+
+use DracPerl::Models::Auth;
 
 has 'ua' => ( lazy => 1, is => 'ro', builder => '_build_ua' );
 
@@ -87,9 +88,10 @@ sub isAlive {
 
     return 0 unless $response->is_success;
 
-    my $treelist = XMLin( $response->decoded_content );
+    # We don't really care about parsing the XML here, we just want to make sure
+    # it is returning *something*
+    return 0 unless $response->decoded_content =~ m/<TreeNodes>/;
 
-    return 0 unless $treelist->{TreeNode};
     return 1;
 
 }
@@ -111,6 +113,7 @@ sub _login {
 
     my $response_raw;
     my $response_xml;
+    my $auth_model;
     my $need_to_retry = 1;
     my $current_tries = 1;
     my $logged;
@@ -125,8 +128,13 @@ sub _login {
         );
 
         if ( $response_raw->is_success ) {
-            $response_xml = XMLin( $response_raw->decoded_content );
-            $logged       = !$response_xml->{authResult};
+            warn $response_raw->decoded_content;
+
+            $auth_model = DracPerl::Models::Auth->new(
+                xml => $response_raw->decoded_content );
+            use Data::Dumper;
+            warn Dumper($auth_model);
+            $logged = !$auth_model->auth_result;
         }
 
         $need_to_retry = 0 if $logged;
@@ -154,7 +162,7 @@ sub _login {
     $self->log->debug(
         "Login Step 1 response : " . $response_raw->decoded_content );
 
-    my @tokens_parts = reverse split( "=", $response_xml->{forwardUrl} );
+    my @tokens_parts = reverse split( "=", $auth_model->forward_url );
 
     $self->log->info( "Success while opening session / " . $tokens_parts[0] );
 
@@ -178,9 +186,10 @@ sub get {
     }
 
     my $parsed_response;
+    my $raw_response = $response->decoded_content;
+    warn $raw_response;
 
-    $parsed_response = XMLin( $response->decoded_content )
-        if $response->is_success;
+#$parsed_response = $self->xml_parser->parse($response->decoded_content) if $response->is_success;
 
     return $parsed_response || 0;
 }
@@ -201,16 +210,16 @@ Jules Decol (@Apcros)
 
 A client to interact with the iDRAC API on Dell Poweredge servers
 
-	# Create the client
-	my $drac_client = DracPerl::Client->new({
-			user 		=> "username",
-			password 	=> "password",
-			url 		=> "https://dracip",
-			});
+    # Create the client
+    my $drac_client = DracPerl::Client->new({
+            user        => "username",
+            password    => "password",
+            url         => "https://dracip",
+            });
 
-	# Get what you're interested in
-	# Login is done implicitly, you can save and resume sessions. See below
-	my $parsed_xml = $drac_client->get("fans");
+    # Get what you're interested in
+    # Login is done implicitly, you can save and resume sessions. See below
+    my $parsed_xml = $drac_client->get("fans");
 
 =head1 DESCRIPTION
 
@@ -219,6 +228,15 @@ A client to interact with the iDRAC API on Dell Poweredge servers
 This been created because I find the web interface of iDrac slow and far from being easy to use. 
 I have the project of creating a full new iDrac front-end, but of course that project required an API Client. 
 Because this is something that seem to be quite lacking in the PowerEdge community, I made a standalone repo/project for that :)
+
+=head2 INSTALL
+
+Deps managed by cpanfile, Make sure you can access iDRAC using the url and and the couple username/password that you provide to the client.
+If you can then just install the dependencies : 
+
+    cpanm --installdeps .
+
+Please note that depending on your network config you might have trouble accessing DRAC from the server itself. (If you are inside a VM running on the Dell server for example)
 
 =head2 TODO
 
@@ -247,8 +265,8 @@ annoyed by that. Defaulted to 5.
 Can be called explicitly or is called by default if get is called and no session is available
 You can pass it a saved session in order to restore it. 
 
-	$drac_client->openSession($saved_session) #Will restore a session
-	$drac_client->openSession() #Will open a new one
+    $drac_client->openSession($saved_session) #Will restore a session
+    $drac_client->openSession() #Will open a new one
 
 =head2 saveSession
 
