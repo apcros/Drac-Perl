@@ -8,6 +8,7 @@ use Log::Any::Adapter;
 use LWP::UserAgent;
 use Moose;
 
+use DracPerl::Factories::Command;
 use DracPerl::Models::Auth;
 
 has 'ua' => ( lazy => 1, is => 'ro', builder => '_build_ua' );
@@ -70,15 +71,14 @@ sub closeSession {
 
 sub saveSession {
     my ($self) = @_;
-    my %saved_session;
 
     return 0 unless $self->token;
 
     $self->log->info("Saving the session");
-    $saved_session{token}      = $self->token;
-    $saved_session{cookie_jar} = $self->ua->cookie_jar;
-
-    return \%saved_session;
+    return {
+        token => $self->token,
+        cookie_jar => $self->ua->cookie_jar
+    };
 }
 
 sub isAlive {
@@ -128,12 +128,8 @@ sub _login {
         );
 
         if ( $response_raw->is_success ) {
-            warn $response_raw->decoded_content;
-
             $auth_model = DracPerl::Models::Auth->new(
                 xml => $response_raw->decoded_content );
-            use Data::Dumper;
-            warn Dumper($auth_model);
             $logged = !$auth_model->auth_result;
         }
 
@@ -172,10 +168,15 @@ sub _login {
 }
 
 sub get {
-    my ( $self, $query ) = @_;
+    my ( $self, $commands ) = @_;
 
     $self->openSession() unless $self->token;
 
+    unless (scalar @{$commands}) {
+        $self->log->error("No commands specified");
+        return 0;
+    }
+    my $query = join(',',@{$commands});
     my $response = $self->ua->post( $self->url . "/data?get=" . $query );
 
     if ( $response->is_success ) {
@@ -185,14 +186,21 @@ sub get {
         $self->log->error("Error while fetching $query");
     }
 
-    my $parsed_response;
+
     my $raw_response = $response->decoded_content;
-    warn $raw_response;
 
-#$parsed_response = $self->xml_parser->parse($response->decoded_content) if $response->is_success;
+    # Everything is mixed in the Same XML, but we have individual models
+    # So we iterate over commands and return separate models
+    my $result;
+    foreach my $command (@{$commands}) {
+        my $model = DracPerl::Factories::Command->create($command, {
+                xml => $raw_response });
+        $result->{$command} = $model;
+    }
 
-    return $parsed_response || 0;
+    return $result || {success => 0, message => 'XML returned matched no model', raw => $raw_response};
 }
+
 
 sub set {
     die("Not implemented yet");

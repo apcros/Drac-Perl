@@ -2,7 +2,7 @@ use Test::More;
 use DracPerl::Client;
 
 BEGIN {
-    $ENV{LWP_UA_MOCK}      ||= 'playback';
+    $ENV{LWP_UA_MOCK}      ||= 'passthrough';
     $ENV{LWP_UA_MOCK_FILE} ||= 't/mocked/idrac.out';
 }
 
@@ -22,10 +22,21 @@ is length $drac_client->token, 32, "Token is present after login";
 ok my $session_saved = $drac_client->saveSession(),
     "Session saved successfully";
 
-ok my $fans_xml = $drac_client->get("fans"),
+ok my $result = $drac_client->get(["fans", "temperatures", "voltages"]),
     "Fans data is retrieved sucessfully";
 
-is $fans_xml->{sensortype}->{sensorid}, "4", "Fans data is correct";
+ok my $fans = $result->{fans};
+ok my $temperatures = $result->{temperatures};
+ok my $voltages = $result->{voltages};
+
+use Data::Dumper;
+warn Dumper($fans->list);
+warn Dumper($temperatures->list);
+warn Dumper($voltages->list);
+
+is scalar @{$fans->list}, 5, "Fans data is correct";
+is scalar @{$temperatures->list}, 1, "Temps data is correct";
+is scalar @{$voltages->list}, 20, "Voltage data is correct";
 
 is $drac_client->isAlive(), 1, "Session is still alive";
 

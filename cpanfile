@@ -1,4 +1,5 @@
 requires 'Moose';
+requires 'MooseX::AbstractFactory';
 requires 'Log::Any';
 requires 'LWP::UserAgent';
 requires 'LWP::Protocol::https';
