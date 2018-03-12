@@ -1,4 +1,4 @@
-package DracPerl::Models::DiscreteSensor;
+package DracPerl::Models::Abstract::DiscreteSensor;
 use XML::Rabbit;
 
 has_xpath_value 'name' => './name';

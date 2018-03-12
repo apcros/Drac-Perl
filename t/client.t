@@ -22,14 +22,17 @@ is length $drac_client->token, 32, "Token is present after login";
 ok my $session_saved = $drac_client->saveSession(),
     "Session saved successfully";
 
-ok my $result = $drac_client->get(["fans", "temperatures", "voltages"]),
-    "Fans data is retrieved sucessfully";
+ok my $result = $drac_client->get({
+    commands => ["fans", "temperatures", "voltages"],
+}),
+    "Data is retrieved sucessfully";
 
 ok my $fans = $result->{fans};
 ok my $temperatures = $result->{temperatures};
 ok my $voltages = $result->{voltages};
 
 use Data::Dumper;
+warn Dumper($result);
 warn Dumper($fans->list);
 warn Dumper($temperatures->list);
 warn Dumper($voltages->list);

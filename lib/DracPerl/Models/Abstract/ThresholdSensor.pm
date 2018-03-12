@@ -1,4 +1,4 @@
-package DracPerl::Models::ThresholdSensor;
+package DracPerl::Models::Abstract::ThresholdSensor;
 use XML::Rabbit;
 
 has_xpath_value 'name' => './name';

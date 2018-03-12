@@ -3,6 +3,7 @@ requires 'MooseX::AbstractFactory';
 requires 'Log::Any';
 requires 'LWP::UserAgent';
 requires 'LWP::Protocol::https';
+requires 'Readonly';
 requires 'XML::Rabbit';
 
 test_requires 'Test::More';
