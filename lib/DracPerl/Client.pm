@@ -9,8 +9,8 @@ use LWP::UserAgent;
 use Moose;
 
 use DracPerl::Factories::DellDefaultCommand;
-use DracPerl::Factories::CustomCommand;
-use DracPerl::CustomCommandsMappings;
+use DracPerl::Factories::CommandCollection;
+use DracPerl::CollectionMappings;
 use DracPerl::Models::Auth;
 
 has 'ua' => ( lazy => 1, is => 'ro', builder => '_build_ua' );
@@ -173,7 +173,7 @@ sub getCustomModel {
     my ($self, $name) = @_;
 
     my $result = $self->get({
-        custom_commands => DracPerl::CustomCommandsMappings::get_query($name)
+        custom_commands => DracPerl::CollectionMappings::get_query($name)
     });
     return $result unless $result->{success};
     return $result->{$name};
@@ -189,15 +189,15 @@ sub get {
 
     $self->openSession() unless $self->token;
 
-    my $default_commands = $args->{commands};
-    my $custom_commands = $args->{custom_commands};
+    my $commands = $args->{commands};
+    my $collections = $args->{collections};
 
-    unless (scalar @{$default_commands} || scalar @{$custom_commands}) {
-        $self->log->error("No default/custom commands specified");
+    unless (scalar @{$commands} || scalar @{$collections}) {
+        $self->log->error("No commands or collectionsspecified");
         return 0;
     }
 
-    my $query = $self->_build_query_string($default_commands, $custom_commands);
+    my $query = $self->_build_query_string($commands, $collections);
 
     my $response = $self->ua->post( $self->url . "/data?get=" . $query );
 
@@ -210,44 +210,44 @@ sub get {
 
     my $raw_response = $response->decoded_content;
 
-    return $self->_parse_response($default_commands, $custom_commands, $raw_response);
+    return $self->_parse_response($commands, $collections, $raw_response);
 }
 
 
 sub _parse_response {
-    my ($self, $default_commands, $custom_commands, $xml) = @_;
+    my ($self, $commands, $collections, $xml) = @_;
 
     #TODO : Snake-case the commands before putting them in the hash
     my $result;
 
-    foreach my $default_command (@{$default_commands}) {
-        my $model = DracPerl::Factories::DellDefaultCommand->create($default_command, {
+    foreach my $command (@{$commands}) {
+        my $model = DracPerl::Factories::DellDefaultCommand->create($command, {
                 xml => $xml });
-        $result->{$default_command} = $model;
+        $result->{$command} = $model;
     }
 
-    foreach my $custom_command (@{$custom_commands}) {
-        my $model = DracPerl::Factories::CustomCommand->create($custom_command, {
+    foreach my $collection (@{$collections}) {
+        my $model = DracPerl::Factories::CommandCollection->create($collection, {
                 xml => $xml });
-        $result->{$custom_command} = $model;
+        $result->{$collection} = $model;
     }
 
    return $result || {success => 0, message => 'XML returned matched no model', raw => $xml};
 }
 
 sub _build_query_string {
-    my ($self, $default_commands, $custom_commands) = @_;
+    my ($self, $commands, $collections) = @_;
 
     my $query = '';
 
-    $query = join(',',@{$default_commands});
+    $query = join(',',@{$commands});
 
     #TODO : Deduplicate
-    my @custom_commands_queries = map {
+    my @collections_queries = map {
         DracPerl::CustomCommandsMappings::get_query($_)
-    } @{$custom_commands};
+    } @{$collections};
 
-    $query .= join(',',@custom_commands_queries);
+    $query .= join(',',@collections_queries);
 
     return $query;
 }

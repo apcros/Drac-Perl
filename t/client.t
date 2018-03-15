@@ -1,4 +1,4 @@
-use Test::More;
+use Test::Most;
 use DracPerl::Client;
 
 BEGIN {

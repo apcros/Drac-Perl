@@ -1,4 +1,4 @@
-package DracPerl::CustomCommandsMappings;
+package DracPerl::CollectionMappings;
 
 use Readonly;
 

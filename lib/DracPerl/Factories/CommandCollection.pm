@@ -1,4 +1,4 @@
-package DracPerl::Factories::CustomCommand;
+package DracPerl::Factories::CommandCollection;
 
 use MooseX::AbstractFactory;
 

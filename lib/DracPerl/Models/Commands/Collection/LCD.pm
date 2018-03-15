@@ -1,4 +1,4 @@
-package DracPerl::Models::Commands::Custom::LCD;
+package DracPerl::Models::Commands::Collection::LCD;
 use XML::Rabbit::Root;
 
 has_xpath_value 'color' => '/root/lcdColor';

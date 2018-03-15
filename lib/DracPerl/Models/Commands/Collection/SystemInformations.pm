@@ -1,4 +1,4 @@
-package DracPerl::Models::Commands::Custom::SystemInformations;
+package DracPerl::Models::Commands::Collection::SystemInformations;
 use XML::Rabbit::Root;
 
 has_xpath_value 'pw_state' => '/root/pwState';
