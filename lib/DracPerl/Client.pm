@@ -78,7 +78,7 @@ sub saveSession {
 
     $self->log->info("Saving the session");
     return {
-        token => $self->token,
+        token      => $self->token,
         cookie_jar => $self->ua->cookie_jar
     };
 }
@@ -90,8 +90,8 @@ sub isAlive {
 
     return 0 unless $response->is_success;
 
-    # We don't really care about parsing the XML here, we just want to make sure
-    # it is returning *something*
+  # We don't really care about parsing the XML here, we just want to make sure
+  # it is returning *something*
     return 0 unless $response->decoded_content =~ m/<TreeNodes>/;
 
     return 1;
@@ -170,34 +170,36 @@ sub _login {
 }
 
 sub getCustomModel {
-    my ($self, $name) = @_;
+    my ( $self, $name ) = @_;
 
-    my $result = $self->get({
-        custom_commands => DracPerl::CollectionMappings::get_query($name)
-    });
+    my $result
+        = $self->get(
+        { custom_commands => DracPerl::CollectionMappings::get_query($name) }
+        );
     return $result unless $result->{success};
     return $result->{$name};
 }
 
 sub getAvailableCustomModels {
     my ($self) = @_;
+
     # TODO : List everything in DracPerl::Factories::CustomCommand
 }
 
 sub get {
-    my ( $self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     $self->openSession() unless $self->token;
 
-    my $commands = $args->{commands};
+    my $commands    = $args->{commands};
     my $collections = $args->{collections};
 
-    unless (scalar @{$commands} || scalar @{$collections}) {
+    unless ( scalar @{$commands} || scalar @{$collections} ) {
         $self->log->error("No commands or collectionsspecified");
         return 0;
     }
 
-    my $query = $self->_build_query_string($commands, $collections);
+    my $query = $self->_build_query_string( $commands, $collections );
 
     my $response = $self->ua->post( $self->url . "/data?get=" . $query );
 
@@ -210,44 +212,49 @@ sub get {
 
     my $raw_response = $response->decoded_content;
 
-    return $self->_parse_response($commands, $collections, $raw_response);
+    return $self->_parse_response( $commands, $collections, $raw_response );
 }
 
-
 sub _parse_response {
-    my ($self, $commands, $collections, $xml) = @_;
+    my ( $self, $commands, $collections, $xml ) = @_;
 
     #TODO : Snake-case the commands before putting them in the hash
     my $result;
 
-    foreach my $command (@{$commands}) {
-        my $model = DracPerl::Factories::DellDefaultCommand->create($command, {
-                xml => $xml });
+    foreach my $command ( @{$commands} ) {
+        my $model = DracPerl::Factories::DellDefaultCommand->create( $command,
+            { xml => $xml } );
         $result->{$command} = $model;
     }
 
-    foreach my $collection (@{$collections}) {
-        my $model = DracPerl::Factories::CommandCollection->create($collection, {
-                xml => $xml });
+    foreach my $collection ( @{$collections} ) {
+        my $model
+            = DracPerl::Factories::CommandCollection->create( $collection,
+            { xml => $xml } );
         $result->{$collection} = $model;
     }
 
-   return $result || {success => 0, message => 'XML returned matched no model', raw => $xml};
+    return $result
+        || {
+        success => 0,
+        message => 'XML returned matched no model',
+        raw     => $xml
+        };
 }
 
 sub _build_query_string {
-    my ($self, $commands, $collections) = @_;
+    my ( $self, $commands, $collections ) = @_;
 
     my $query = '';
 
-    $query = join(',',@{$commands});
+    $query = join( ',', @{$commands} );
 
     #TODO : Deduplicate
-    my @collections_queries = map {
-        DracPerl::CustomCommandsMappings::get_query($_)
-    } @{$collections};
+    my @collections_queries
+        = map { DracPerl::CustomCommandsMappings::get_query($_) }
+        @{$collections};
 
-    $query .= join(',',@collections_queries);
+    $query .= join( ',', @collections_queries );
 
     return $query;
 }
