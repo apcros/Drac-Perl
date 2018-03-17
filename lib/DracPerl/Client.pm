@@ -195,7 +195,7 @@ sub get {
     my $collections = $args->{collections};
 
     unless ( scalar @{$commands} || scalar @{$collections} ) {
-        $self->log->error("No commands or collectionsspecified");
+        $self->log->error("No commands or collections specified");
         return 0;
     }
 
@@ -303,20 +303,8 @@ If you can then just install the dependencies :
 
 Please note that depending on your network config you might have trouble accessing DRAC from the server itself. (If you are inside a VM running on the Dell server for example)
 
-=head2 TODO
-
-What's to come ? 
-
-- Better error handling
-
-- Integration with Log4Perl
-
-- Full list of supported Method 
-
-- Few method to abstract commons operations
 
 =head1 OBJECT ARGUMENTS
-
 
 =head2 max_retries
 
@@ -324,6 +312,21 @@ Login can be extremely capricious, Max retries avoid being too
 annoyed by that. Defaulted to 5.
 
 =head1 METHODS
+
+=head2 get
+
+Will return a hash containing models of all the methods or collection you called.
+
+    my $result = $drac_client->get({
+        commands => ['fans'],
+        collections => ['lcd']
+    });
+
+    # $result will contain :
+    {
+        fans => .. #DracPerl::Models::Commands::DellDefault::Fans,
+        lcd => .. #DracPerl::Models::Commands::Collection::LCD
+    }
 
 =head2 openSession
 
@@ -345,6 +348,43 @@ Invalidate the current session
 
 Check with a quick api call if your current session is still useable.
 
+=head1 COMMANDS
+
+A command is a single field defined by the DRAC API.
+They can be send in the "commands" hash key on the get method
+
+Here's the list of supported commands :
+
+B<batteries> - L<DracPerl::Models::Commands::DellDefault::Batteries>
+
+B<eventLogEntries> - L<DracPerl::Models::Commands::DellDefault::EventLogEntries>
+
+B<racLogEntries> - L<DracPerl::Models::Commands::DellDefault::RacLogEntries>
+
+B<fans> - L<DracPerl::Models::Commands::DellDefault::Fans>
+
+B<fansRedundancy> - L<DracPerl::Models::Commands::DellDefault::FansRedundancy>
+
+B<getInv> - L<DracPerl::Models::Commands::DellDefault::GetInv>
+
+B<intrusion> - L<DracPerl::Models::Commands::DellDefault::Intrusion>
+
+B<powerSupplies> - L<DracPerl::Models::Commands::DellDefault::PowerSupplies>
+
+B<temperatures> - L<DracPerl::Models::Commands::DellDefault::Temperatures>
+
+B<voltages> - L<DracPerl::Models::Commands::DellDefault::Voltages>
+
+=head1 COLLECTIONS
+
+Collections are groups of field. This is not a Dell terminology.
+This was created because some interfaces pages (LCD information for example)
+will need several commands and the commands themselves are too small to justify
+having a standalone model for them.
+
+B<systemInformations> - L<DracPerl::Models::Commands::Collection::SystemInformations>
+
+B<lcd> - L<DracPerl::Models::Commands::Collection::LCD>
 
 =cut
 

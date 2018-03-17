@@ -8,3 +8,17 @@ has_xpath_object_list 'list' =>
 finalize_class();
 
 1;
+
+
+=head1 NAME
+
+DracPerl::Models::Commands::DellDefault::Fans - Return a list and status of all fans in the system
+
+=head1 ATTRIBUTES
+
+=head2 list
+
+An array of L<DracPerl::Models::Abstract::ThresholdSensor>
+(Where each ThresholdSensor is a fan)
+
+=cut

@@ -43,3 +43,80 @@ has_xpath_value 'os_drivers'   => '/root/SWINVs/OS_Drivers';
 finalize_class();
 
 1;
+
+=head1 NAME
+
+DracPerl::Models::Commands::DellDefault::GetInv - Return the full hardware and software inventory of the system
+
+=head1 ATTRIBUTES
+
+=head2 bios_version
+
+The BIOS Version
+
+eg : '1.4.0'
+
+=head2 lcc_version
+
+The Life Cycle Controller version
+
+eg : '1.4.0.445'
+
+=head2 diag
+
+The version of the Dell 32bits Diagnostics tool
+
+eg : '5144A0'
+
+=head2 os_drivers
+
+The version of the OS Driver pack
+
+eg : '6.3.9.23'
+
+=head2 controllers
+
+List of all RAID controllers
+An array of L<DracPerl::Models::Abstract::Controller>
+
+=head2 memories
+
+A list of all memory stick
+An array of L<DracPerl::Models::Abstract::Memory>
+
+=head2 nics
+
+A list of all Network Interface Cards (NIC)
+An array of L<DracPerl::Models::Abstract::NIC>
+
+=head2 video_cards
+
+A list of all videos cards
+An array of L<DracPerl::Models::Abstract::VideoCard>
+
+=head2 power_supply_slots
+
+A list of all power supply slot. (And what is occupying the slot)
+An array of L<DracPerl::Models::Abstract::PowerSupplySlot>
+
+=head2 physical_disks
+
+A list of all physical disks plugged in.
+An array of L<DracPerl::Models::Abstract::PhysicalDisk>
+
+=head2 idrac_cards
+
+A list of all iDrac cards
+An array of L<DracPerl::Models::Abstract::iDracCard>
+
+=head2 vflashs
+
+A list of all vFlash slot and their contents.
+An array of L<DracPerl::Models::Abstract::VFlash>
+
+=head2 cpus
+
+A list of all CPUs
+An array of L<DracPerl::Models::Abstract::CPU>
+
+=cut

@@ -2,7 +2,7 @@ use Test::Most;
 use DracPerl::Client;
 
 BEGIN {
-    $ENV{LWP_UA_MOCK}      ||= 'passthrough';
+    $ENV{LWP_UA_MOCK}      ||= 'playback';
     $ENV{LWP_UA_MOCK_FILE} ||= 't/mocked/idrac.out';
 }
 
@@ -23,23 +23,13 @@ ok my $session_saved = $drac_client->saveSession(),
     "Session saved successfully";
 
 ok my $result = $drac_client->get({
-    commands => ["fans", "temperatures", "voltages"],
+    commands => ["fans"],
 }),
     "Data is retrieved sucessfully";
 
 ok my $fans = $result->{fans};
-ok my $temperatures = $result->{temperatures};
-ok my $voltages = $result->{voltages};
-
-use Data::Dumper;
-warn Dumper($result);
-warn Dumper($fans->list);
-warn Dumper($temperatures->list);
-warn Dumper($voltages->list);
 
 is scalar @{$fans->list}, 5, "Fans data is correct";
-is scalar @{$temperatures->list}, 1, "Temps data is correct";
-is scalar @{$voltages->list}, 20, "Voltage data is correct";
 
 is $drac_client->isAlive(), 1, "Session is still alive";
 
