@@ -20,7 +20,7 @@ DracPerl::Models::Abstract::PhysicalDisk - Info about a disk
 =head2 id
 
 Dell ID for this disk
-eg : 'Disk.Bay.1:Enclosure.Internal.0-0:RAID.Slot.4-1<'
+eg : 'Disk.Bay.1:Enclosure.Internal.0-0:RAID.Slot.4-1'
 
 =head2 manufacturer
 

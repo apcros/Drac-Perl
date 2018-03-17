@@ -1,6 +1,6 @@
 package DracPerl::Client;
 
-our $VERSION = "0.10";
+our $VERSION = "0.20";
 
 use Log::Any ();
 use Log::Any::Adapter;
@@ -180,12 +180,6 @@ sub getCustomModel {
     return $result->{$name};
 }
 
-sub getAvailableCustomModels {
-    my ($self) = @_;
-
-    # TODO : List everything in DracPerl::Factories::CustomCommand
-}
-
 sub get {
     my ( $self, $args ) = @_;
 
@@ -269,7 +263,7 @@ DracPerl::Client - API Client for Dell's management interface (iDRAC)
 
 =head1 AUTHOR
 
-Jules Decol (@Apcros)
+Jules Decol - @Apcros
 
 =head1 SYNOPSIS
 
@@ -284,7 +278,7 @@ A client to interact with the iDRAC API on Dell Poweredge servers
 
     # Get what you're interested in
     # Login is done implicitly, you can save and resume sessions. See below
-    my $parsed_xml = $drac_client->get("fans");
+    my $parsed_xml = $drac_client->get({ commands => ['fans']});
 
 =head1 DESCRIPTION
 
@@ -294,15 +288,15 @@ This been created because I find the web interface of iDrac slow and far from be
 I have the project of creating a full new iDrac front-end, but of course that project required an API Client. 
 Because this is something that seem to be quite lacking in the PowerEdge community, I made a standalone repo/project for that :)
 
-=head2 INSTALL
+=head2 PITFALLS
 
-Deps managed by cpanfile, Make sure you can access iDRAC using the url and and the couple username/password that you provide to the client.
-If you can then just install the dependencies : 
+The DRAC API this client is exploiting is meant to be used only by the DRAC front-end and therefore comes with it loads of weirdness.
 
-    cpanm --installdeps .
+- A lot of fields have trailing whitespace in them (Possible update coming soon to clean theses)
+- When no data is available some fields will be empty, some will be 'N/A', there seem to be no consistency there
+- Some fields are padded (See L<DracPerl::Models::Abstract::PhysicalDisk> )
 
 Please note that depending on your network config you might have trouble accessing DRAC from the server itself. (If you are inside a VM running on the Dell server for example)
-
 
 =head1 OBJECT ARGUMENTS
 
